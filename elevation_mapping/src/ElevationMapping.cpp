@@ -61,7 +61,11 @@ ElevationMapping::ElevationMapping(ros::NodeHandle& nodeHandle)
   ROS_INFO("Elevation mapping node started.");
 
   readParameters();
-  pointCloudSubscriber_ = nodeHandle_.subscribe(pointCloudTopic_, 1, &ElevationMapping::pointCloudCallback, this);
+  pointCloudSubscribers_.resize(pointCloudTopics_.size());
+  for(size_t i = 0; i < pointCloudTopics_.size(); i++ ){
+    pointCloudSubscribers_.at(i) = nodeHandle_.subscribe(pointCloudTopics_.at(i), 1, &ElevationMapping::pointCloudCallback, this);
+  }
+
   if (!robotPoseTopic_.empty()) {
     robotPoseSubscriber_.subscribe(nodeHandle_, robotPoseTopic_, 1);
     robotPoseCache_.connectInput(robotPoseSubscriber_);
@@ -126,7 +130,19 @@ ElevationMapping::~ElevationMapping()
 bool ElevationMapping::readParameters()
 {
   // ElevationMapping parameters.
-  nodeHandle_.param("point_cloud_topic", pointCloudTopic_, string("/points"));
+  nodeHandle_.param("n_pointclouds", n_pointclouds_, (int)1);
+  pointCloudTopics_.resize(0);
+  string topic;
+  nodeHandle_.param("point_cloud_topic", topic, string("/points"));
+  pointCloudTopics_.push_back(topic);
+  if(n_pointclouds_ > 1){
+    for(int i = 2; i < n_pointclouds_+1; ++i){
+      string topic;
+      nodeHandle_.param("point_cloud_topic_"+std::to_string(i), topic, string("/points"));
+      pointCloudTopics_.push_back(topic);
+    }
+  }
+  
   nodeHandle_.param("robot_pose_with_covariance_topic", robotPoseTopic_, string("/pose"));
   nodeHandle_.param("track_point_frame_id", trackPointFrameId_, string("/robot"));
   nodeHandle_.param("track_point_x", trackPoint_.x(), 0.0);

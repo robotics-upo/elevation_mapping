@@ -250,7 +250,8 @@ class ElevationMapping
   ros::NodeHandle& nodeHandle_;
 
   //! ROS subscribers.
-  ros::Subscriber pointCloudSubscriber_;
+  std::vector<ros::Subscriber> pointCloudSubscribers_;
+
   message_filters::Subscriber<geometry_msgs::PoseWithCovarianceStamped> robotPoseSubscriber_;
 
   //! ROS service servers.
@@ -287,7 +288,8 @@ class ElevationMapping
   std::string trackPointFrameId_;
 
   //! ROS topics for subscriptions.
-  std::string pointCloudTopic_;
+  int n_pointclouds_;
+  std::vector<std::string> pointCloudTopics_;
   std::string robotPoseTopic_;
 
   //! Elevation map.
