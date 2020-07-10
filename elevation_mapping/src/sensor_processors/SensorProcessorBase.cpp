@@ -55,7 +55,10 @@ bool SensorProcessorBase::readParameters()
   nodeHandle_.param("sensor_processor/ignore_points_below", ignorePointsLowerThreshold_, -std::numeric_limits<double>::infinity());
 
   nodeHandle_.param("sensor_processor/apply_voxelgrid_filter", applyVoxelGridFilter_, false);
+  nodeHandle_.param("sensor_processor/apply_outliers_filter", applyOutliersFilter_, false);
   nodeHandle_.param("sensor_processor/voxelgrid_filter_size", sensorParameters_["voxelgrid_filter_size"], 0.0);
+  nodeHandle_.param("sensor_processor/outliers_number", sensorParameters_["outliers_number"], 5.0);
+  nodeHandle_.param("sensor_processor/outliers_dev", sensorParameters_["outliers_dev"], 1.0);
   return true;
 }
 
@@ -191,6 +194,20 @@ bool SensorProcessorBase::filterPointCloud(const pcl::PointCloud<pcl::PointXYZRG
     pointCloud->swap(tempPointCloud);
   }
   ROS_DEBUG_THROTTLE(2, "cleanPointCloud() reduced point cloud to %i points.", static_cast<int>(pointCloud->size()));
+  //The number of neighbors to analyze for each point is set to 50, and the standard deviation multiplier to 1. 
+  // What this means is that all points who have a distance larger
+  // than 1 standard deviation of the mean distance to teh query point will be marked as outliers and removed. 
+  // The output is computed and stored in cloud_filtered.
+  ROS_INFO("Processing...");
+  if(applyOutliersFilter_){
+    ROS_INFO("Applying outliers filter...");
+    pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor_out;
+    sor_out.setInputCloud(pointCloud);
+    sor_out.setMeanK(sensorParameters_.at("outliers_number"));
+    sor_out.setStddevMulThresh(sensorParameters_.at("outliers_dev"));
+    sor_out.filter(tempPointCloud);
+    pointCloud->swap(tempPointCloud);
+  }
   return true;
 }
 

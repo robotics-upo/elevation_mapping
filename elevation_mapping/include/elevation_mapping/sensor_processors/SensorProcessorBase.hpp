@@ -15,7 +15,7 @@
 // PCL
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
-
+#include <pcl/filters/statistical_outlier_removal.h>
 // Eigen
 #include <Eigen/Core>
 
@@ -180,6 +180,9 @@ public:
 
   //! Use VoxelGrid filter to cleanup pointcloud if true.
   bool applyVoxelGridFilter_;
+
+  //! Use VoxelGrid filter to cleanup pointcloud if true.
+  bool applyOutliersFilter_;
 
   //! Indicates if the requested tf transformation was available.
   bool firstTfAvailable_;
